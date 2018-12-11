@@ -51,6 +51,7 @@ import Loginvalue from '@/pages/Login/components/Loginvalue'
 import Dialogvue from '@/pages/Login/components/Dialogvue'
 import NoXieyi from '@/pages/Login/components/NoXieyi'
 export default {
+  name: 'Login',
   data () {
     return {
       message: '登陆',
