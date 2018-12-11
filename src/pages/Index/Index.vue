@@ -1,6 +1,7 @@
 <template>
   <div>
     {{message}}
+    <div class="iconfont icon-guanbi1 styles"></div>
   </div>
 </template>
 
@@ -16,4 +17,8 @@ export default {
 </script>
 
 <style scoped lang="less">
+.styles {
+  background: #ccc;
+  font-size: 14px;
+}
 </style>
