@@ -7,16 +7,19 @@ const service = axios.create({
 })
 /** **** request拦截器==>对请求参数做处理 ******/
 service.interceptors.request.use(config => {
-  // app.$vux.loading.show({
-  //   text: '数据加载中……'
-  // })
+  let value = window.localStorage.getvalue('token') // 取出来token
+  // 这里表示token存在 ,这样每次发送请求的时候都会带上token
+  if (value) {
+    config.headers.Authorization = value
+    config.method === 'post'
+      ? config.data = qs.stringify({ ...config.data
+      })
+      : config.params = { ...config.params
+      }
+    config.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+  } else {
 
-  config.method === 'post'
-    ? config.data = qs.stringify({ ...config.data
-    })
-    : config.params = { ...config.params
-    }
-  config.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+  }
 
   return config
 }, error => { // 请求错误处理
