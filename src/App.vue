@@ -31,6 +31,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
+@import "~styles/common.less";
 * {
   font-family: "Microsoft YaHei";
 }
@@ -39,6 +40,7 @@ export default {
   width: 100%;
   height: 100%;
   transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+  background: @bgcolor;
 }
 //起点
 .slide-left-enter,
