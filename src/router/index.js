@@ -37,5 +37,12 @@ export default new Router({
       name: 'Paihang',
       component: Paihang
     }
-  ]
+  ],
+  // 自定义路由切换时页面如何滚动
+  scrollBehavior(to, from, savedPosition) {
+    return {
+      x: 0,
+      y: 0
+    }
+  }
 })

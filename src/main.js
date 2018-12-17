@@ -5,11 +5,21 @@ import App from './App'
 import router from './router'
 import store from './store/index.js'
 import Navigation from 'vue-navigation'
+import VueLazyload from 'vue-lazyload'
 import '@/assets/css/base.css'
 import '@/assets/css/border.css'
 import '@/assets/css/iconfont.css'
+
 Vue.use(Navigation, {
   router
+})
+Vue.use(VueLazyload)
+
+// or with options
+Vue.use(VueLazyload, {
+  preLoad: 1.3,
+  attempt: 1,
+  loading: '../static/images/avaster.jpg'
 })
 Vue.config.productionTip = false
 
