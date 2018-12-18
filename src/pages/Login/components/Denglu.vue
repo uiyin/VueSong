@@ -4,13 +4,17 @@
       <span>用户名 ：</span>
       <input type="text"
              class="nameinput"
-             v-model="name">
+             v-model="name"
+             @focus="jump(1)"
+             @blur="jump(2)">
     </div>
     <div class="name">
       <span>密码 ：</span>
       <input type="text"
              class="nameinput"
-             v-model="password">
+             v-model="password"
+             @focus="jump(1)"
+             @blur="jump(2)">
     </div>
     <div class="rules"
          @click="changecheckbox(index)"
@@ -73,11 +77,18 @@ export default {
           this.$emit('shorulesflag', { id: 2, flag: true })
         }
       } else {
-        this.$emit('shorulesflag', { id: 0, flag: true })
+        this.$emit('showrulesflag', { id: 0, flag: true })
       }
     },
     changecheckbox (index) {
       this.checkboxall[index].checked = !this.checkboxall[index].checked
+    },
+    jump (value) {
+      if (value === 1) {
+        this.$emit('shebei', true)
+      } else {
+        this.$emit('shebei', false)
+      }
     }
   }
 }
