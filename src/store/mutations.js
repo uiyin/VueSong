@@ -28,6 +28,9 @@ let mutations = {
     try {
       localStorage.setvalue('token', value, overtime)
     } catch (e) {}
+  },
+  setsinger (state, value) {
+    state.singer = value
   }
 }
 export default mutations

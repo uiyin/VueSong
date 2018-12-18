@@ -5,6 +5,7 @@ import Login from '@/pages/Login/Login'
 import Search from '@/pages/Search/Search'
 import Singer from '@/pages/Singer/Singer'
 import Paihang from '@/pages/Paihang/Paihang'
+import SingerDetail from '@/pages/SingerDetail/SingerDetail'
 Vue.use(Router)
 /* eslint-disable */
 export default new Router({
@@ -33,6 +34,10 @@ export default new Router({
       component: Singer
     },
     {
+      path: '/singer/:id',
+      name: 'SingerDetail',
+      component: SingerDetail
+    }, {
       path: '/paihang',
       name: 'Paihang',
       component: Paihang

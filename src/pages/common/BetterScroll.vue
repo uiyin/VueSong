@@ -21,7 +21,7 @@ export default {
     _initBetterscroll () {
       let wrap = this.$refs.betterscrollall
       let _this = this
-      let bscroll = new BScroll(wrap, {
+      this.bscroll = new BScroll(wrap, {
         probeType: 3, // 实时知道位置
         pullUpLoad: {
           threshold: 0 // 当我滑动到底部多少的时候触发
@@ -33,22 +33,21 @@ export default {
         scrollY: true, // 纵向是否滑屏false 就不能滑屏了
         click: true
       })
-      console.log(bscroll)
       /* 上拉加载事件开始 */
-      bscroll.on('pullingUp', function () {
+      this.bscroll.on('pullingUp', function () {
         // todo异步操作
         _this.$emit('shangla', true)
-        bscroll.finishPullUp() // 上拉加载完成
-        bscroll.refresh() // 重新渲染数据
+        this.bscroll.finishPullUp() // 上拉加载完成
+        this.bscroll.refresh() // 重新渲染数据
         // bscroll.closePullUp() // 关闭上拉加载当没有数据的时候执行
       })
       /* 上拉加载事件结束 */
       /* 下拉刷新事件开始 */
-      bscroll.on('pullingDown', function () {
+      this.bscroll.on('pullingDown', function () {
         // todo异步操作
         console.log('下拉测试')
-        bscroll.finishPullDown() // 下拉加载完成
-        bscroll.refresh() // 重新渲染数据
+        this.bscroll.finishPullDown() // 下拉加载完成
+        this.bscroll.refresh() // 重新渲染数据
         // bscroll.closePullDown() // 关闭上拉加载当没有数据的时候执行
         _this.$emit('xiala', true)
       })

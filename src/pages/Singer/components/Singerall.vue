@@ -34,13 +34,18 @@
 </template>
 
 <script>
-
+import { mapState, mapMutations } from 'vuex'
 export default {
   props: ['dataall', 'showflag'],
   mounted () {
     setTimeout(() => {
       this.showflag2 = true
     }, 2000)
+  },
+  computed: {
+    ...mapState({
+      singerId: 'singer'
+    })
   },
   data () {
     return {
@@ -54,7 +59,6 @@ export default {
     },
     showflag2 (newvalue, oldvalue) {
       if (!newvalue) {
-        console.log(this.showflag2)
         setTimeout(() => {
           this.showflag2 = true
         }, 2000)
@@ -62,10 +66,15 @@ export default {
     }
   },
   methods: {
-
+    ...mapMutations({
+      setsinger: 'setsinger'
+    }),
     // 点击方法
     gotourl (content) {
-      console.log(content)
+      this.setsinger(content)
+      this.$router.push({
+        path: '/singer/' + content
+      })
     }
   }
 }

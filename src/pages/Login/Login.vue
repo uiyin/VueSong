@@ -10,7 +10,8 @@
     </div>
     <!--背景层结束-->
     <!--登录框组件开始-->
-    <LoginInput @shorulesflag="showrule"></LoginInput>
+    <LoginInput @showrulesflag="showrule"
+                @shebei="changeshebei"></LoginInput>
     <!--登录框组件结束-->
     <!--协议遮罩层开始-->
     <GoTop>
@@ -75,6 +76,17 @@ export default {
     NoXieyi
   },
   methods: {
+    changeshebei (content) {
+      var u = navigator.userAgent
+      var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1 // android终端
+      if (isAndroid) {
+        if (content) {
+          this.$refs.bg.style['top'] = '-250px'
+        } else {
+          this.$refs.bg.style['top'] = '0px'
+        }
+      }
+    },
     closeflag (content) {
       this.xieyiflag = content
       this.userflag = content
