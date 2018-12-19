@@ -1,13 +1,14 @@
 // request.js
 import axios from 'axios'
 import qs from 'qs'
+import storgeMemery from '@/store/localstorge'
 /** **** 创建axios实例 ******/
 const service = axios.create({
   timeout: 5000 // 请求超时时间
 })
 /** **** request拦截器==>对请求参数做处理 ******/
 service.interceptors.request.use(config => {
-  let value = window.localStorage.getvalue('token') // 取出来token
+  let value = storgeMemery.getvalue('token') // 取出来token
   // 这里表示token存在 ,这样每次发送请求的时候都会带上token
   if (value) {
     config.headers.Authorization = value

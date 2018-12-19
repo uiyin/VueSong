@@ -24,7 +24,7 @@
         <li v-for="(item,index) in hotsong"
             class="listitem"
             :key="index"
-            @click="gotourl(item.id)">
+            @click="gotourl(item.id,index)">
           <p class="title1">{{item.name}}</p>
           <p class="title2">{{singer.name}}--{{item.al.name}}</p>
         </li>
@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 import getData from '@/axios/api.js'
 import url from '@/axios/url.js'
 import BScroll from 'better-scroll'
@@ -104,6 +104,8 @@ export default {
     })
   },
   methods: {
+    ...mapMutations(['setfullScreen']),
+    ...mapActions(['selectPlay']),
     _initbetterscroll () {
       let _this = this
       let wrapper = this.$refs.listwrapper
@@ -116,8 +118,14 @@ export default {
         _this.scrollY = res.y
       })
     },
-    gotourl (id) {
+    gotourl (id, index) {
       console.log(id)
+      console.log(index)
+      this.selectPlay({
+        list: this.hotsong,
+        index
+      })
+      this.setfullScreen(true)
     },
     goback () {
       this.$router.go(-1)
