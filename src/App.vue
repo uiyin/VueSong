@@ -5,16 +5,25 @@
         <router-view class="allcontent" />
       </navigation>
     </transition>
+    <Topmission>
+      <player slot="xieyi"></player>
+    </Topmission>
   </div>
 </template>
 
 <script>
+import player from '@/pages/common/Player'
+import Topmission from '@/pages/common/TransitonTop'
 export default {
   name: 'App',
   data () {
     return {
       transitionName: ''
     }
+  },
+  components: {
+    player,
+    Topmission
   },
   created () {
     // bind event ， 更多参数移步vue-navigation

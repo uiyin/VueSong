@@ -6,6 +6,7 @@ import router from './router'
 import store from './store/index.js'
 import Navigation from 'vue-navigation'
 import VueLazyload from 'vue-lazyload'
+import storgeMemery from '@/store/localstorge'
 import '@/assets/css/base.css'
 import '@/assets/css/border.css'
 import '@/assets/css/iconfont.css'
@@ -26,7 +27,7 @@ Vue.config.productionTip = false
 router.beforeEach((to, from, next) => {
   // 设置延时器让created先执行在进行路由跳转
   // 取出token值
-  let value = window.localStorage.getvalue('token') // 取出来token
+  let value = storgeMemery.getvalue('token') // 取出来token
   setTimeout((res) => {
     // 判断该路由是否需要登录权限
     if (to.name === 'Login') {
