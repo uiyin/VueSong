@@ -44,7 +44,8 @@ export default {
       letteractive: 'A',
       Heightresult: [],
       scrollY: 0, // 滚动的实时距离
-      diff: 0 // 偏移量
+      diff: 0, // 偏移量
+      oldLetter: 0 // 节约性能老字母
     }
   },
   components: {
@@ -121,15 +122,17 @@ export default {
     },
     updateletter (content) {
       console.log(content)
-      let wrapper = this.$refs.singerall.$refs.singercontentall.childNodes[0].children // 找到节点合集
-      let value = this.letter
-      let index = 0
-      for (let i = 0; i < value.length; i++) {
-        if (content === value[i]) {
-          index = i
+      this.$nextTick(() => {
+        let wrapper = this.$refs.singerall.$refs.singercontentall.childNodes[0].children // 找到节点合集
+        let value = this.letter
+        let index = 0
+        for (let i = 0; i < value.length; i++) {
+          if (content === value[i]) {
+            index = i
+          }
         }
-      }
-      this.bscroll.scrollToElement(wrapper[index], 300)
+        this.bscroll.scrollToElement(wrapper[index], 300)
+      })
     },
     // 获取高度
     getHeight () {
@@ -182,13 +185,25 @@ export default {
         let height1 = height[i]
         let height2 = height[i + 1]
         if (scrolljuli < height2 && scrolljuli >= height1) {
-          this.letteractive = Letter[i]
-
-          this.diff = height2 - scrolljuli // 获取下一个滚动到标题的位置
+          if (this.oldLetter !== Letter[i]) {
+            this.letteractive = Letter[i]
+            console.log(this.letteractive)
+            this.diff = height2 - scrolljuli // 获取下一个滚动到标题的位置
+            this.oldLetter = Letter[i]
+          }
         } else if (scrolljuli < height[0]) {
-          this.letteractive = Letter[0]
+          if (this.oldLetter !== Letter[0]) {
+            this.letteractive = Letter[0]
+            this.oldLetter = Letter[0]
+            console.log(this.letteractive)
+          }
         } else if (scrolljuli >= height[height.length - 1]) {
-          this.letteractive = Letter[height.length - 1]
+          console.log(newvalue)
+          if (this.oldLetter !== Letter[height.length - 1]) {
+            this.letteractive = Letter[height.length - 1]
+            this.oldLetter = Letter[height.length - 1]
+            console.log(this.letteractive)
+          }
         }
       }
     },
@@ -220,7 +235,7 @@ export default {
   overflow: hidden;
 }
 .title2 {
-  position: absolute;
+  position: fixed;
   top: 1.76rem;
   left: 0px;
   font-size: 14px;

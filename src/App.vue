@@ -5,15 +5,16 @@
         <router-view class="allcontent" />
       </navigation>
     </transition>
-    <Topmission>
-      <player slot="xieyi"></player>
-    </Topmission>
+    <transition name="fade">
+      <player></player>
+    </transition>
+
   </div>
 </template>
 
 <script>
 import player from '@/pages/common/Player'
-import Topmission from '@/pages/common/TransitonTop'
+
 export default {
   name: 'App',
   data () {
@@ -22,8 +23,7 @@ export default {
     }
   },
   components: {
-    player,
-    Topmission
+    player
   },
   created () {
     // bind event ， 更多参数移步vue-navigation
@@ -85,6 +85,14 @@ export default {
   .show-enter-to,
   .show-leave {
     opacity: 1;
+  }
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: all 0.4s;
+  }
+  .fade-enter,
+  .fade-leave-to {
+    opacity: 0;
   }
 }
 </style>

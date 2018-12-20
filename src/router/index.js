@@ -6,7 +6,6 @@ import Search from '@/pages/Search/Search'
 import Singer from '@/pages/Singer/Singer'
 import Paihang from '@/pages/Paihang/Paihang'
 import SingerDetail from '@/pages/SingerDetail/SingerDetail'
-// import Player from '@/pages/common/Player'
 Vue.use(Router)
 /* eslint-disable */
 export default new Router({
