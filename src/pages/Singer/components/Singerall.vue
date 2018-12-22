@@ -2,7 +2,7 @@
   <div class="wrapper">
     <div class="contentall"
          ref="singercontentall"
-         v-if="showflag2">
+         v-show="showflag2">
       <ul class="contentul">
         <li v-for="(item,index) in dataall"
             :key="index">
@@ -25,7 +25,7 @@
       </ul>
     </div>
     <div class="container"
-         v-if="!showflag2">
+         v-show="!showflag2">
       <p>正在加载中请稍后</p>
     </div>
 

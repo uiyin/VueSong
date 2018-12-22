@@ -7,6 +7,7 @@ import store from './store/index.js'
 import Navigation from 'vue-navigation'
 import VueLazyload from 'vue-lazyload'
 import storgeMemery from '@/store/localstorge'
+import Progress from 'vue-multiple-progress'
 import '@/assets/css/base.css'
 import '@/assets/css/border.css'
 import '@/assets/css/iconfont.css'
@@ -14,6 +15,7 @@ import '@/assets/css/iconfont.css'
 Vue.use(Navigation, {
   router
 })
+Vue.use(Progress)
 Vue.use(VueLazyload)
 
 // or with options

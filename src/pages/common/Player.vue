@@ -30,7 +30,6 @@
                 <img :src="currentSong.al.picUrl"
                      class="image"
                      alt="">
-                {{currentSong}}
               </div>
             </div>
           </div>
@@ -38,12 +37,37 @@
         <!--中间结束-->
         <!--尾巴开始-->
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{setTime(currentTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <div class="progress-bar"
+                   ref="progresswrapper"
+                   @click="clicksong">
+                <div class="bar-inner">
+                  <div class="progress"
+                       ref="progress"></div>
+                  <div class="progress-btn-wrapper"
+                       ref="progressbtn"
+                       @touchstart.prevent="touchstart"
+                       @touchmove.prevent="touchmove"
+                       @touchend="touchend">
+                    <div class="progress-btn"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <span class="time time-r">{{setTime(currentSong.dt/1000)}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left"><i class="iconfont icon-xunhuanbofang iconstyles2"></i></div>
-            <div class="icon i-left"><i class="iconfont icon-shangyishou iconstyles2"></i></div>
+            <div class="icon i-left"
+                 :class="disabledClass"><i @click="prev"
+                 class="iconfont icon-shangyishou iconstyles2"></i></div>
             <div class="icon i-center"><i :class="playIcon"
                  @click="togglePlaying"></i></div>
-            <div class="icon i-right"><i class="iconfont icon-xiayishou iconstyles2"></i></div>
+            <div class="icon i-right"
+                 :class="disabledClass"><i @click="next"
+                 class="iconfont icon-xiayishou iconstyles2"></i></div>
             <div class="icon i-right"><i class="iconfont icon-xihuan iconstyles2"></i></div>
           </div>
         </div>
@@ -77,8 +101,18 @@
              v-html="currentSong.ar[0].name"></p>
         </div>
         <div class="control">
-          <div class="progress-circle"><i :class="playIcon"
-               @click.stop="togglePlaying"></i></div>
+          <div class="progress-circle">
+            <vm-progress type="circle"
+                         :percentage="circlepercent"
+                         :width="30"
+                         stroke-width="4"
+                         track-color="#ffcd32"
+                         stroke-color="#0190d4">
+              <i :class="playIcon"
+                 @click.stop="togglePlaying"
+                 style="top:-8px;left:4px;font-size:22px;"></i>
+            </vm-progress>
+          </div>
         </div>
         <div class="control">
           <div class="progress-circle"><i class="iconfont icon-bianji iconstyles2"></i></div>
@@ -86,7 +120,10 @@
       </div>
     </transition>
     <audio ref="audio"
-           :src="songurl"></audio>
+           :src="songurl"
+           @canplay="ready"
+           @error="error"
+           @timeupdate="updatetime"></audio>
   </div>
 </template>
 
@@ -97,17 +134,20 @@ export default {
   data () {
     return {
       message: '播放器',
-      flag: false
+      flag: false,
+      audioflag: false,
+      // 正在播放的时间
+      currentTime: 0,
+      // 存储小滑块滑动的信息
+      touch: {}
     }
   },
   created () {
-
   },
   components: {
 
   },
   watch: {
-
     currentSong () {
       this.$nextTick(() => {
         this.$refs.audio.play()
@@ -119,10 +159,31 @@ export default {
         const audio = this.$refs.audio
         newvalue ? audio.play() : audio.pause()
       })
+    },
+    // 监听percent变化
+    percent (newvalue, oldvalue) {
+      if (newvalue >= 0 && this.touch.enable) {
+        this.$nextTick(() => {
+          let width = this.$refs.progresswrapper.clientWidth * newvalue
+          this.$refs.progress.style.width = width + 'px'
+          this.$refs.progressbtn.style['transform'] = `translate3d(${width}px,0,0)`
+        })
+      }
     }
   },
   computed: {
-    ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing']),
+    // 小圈运行百分比
+    circlepercent () {
+      return this.percent * 100
+    },
+    // 滑动轴百分比
+    percent () {
+      return this.currentTime / (this.currentSong.dt / 1000)
+    },
+    ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex']),
+    disabledClass () {
+      return this.audioflag ? '' : 'fault'
+    },
     activaclass () {
       return this.playing ? 'play' : 'play pause'
     },
@@ -137,8 +198,101 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['setfullScreen', 'setplaying']),
+    // 点击开始到固定的位置
+    clicksong (e) {
+      this.$refs.progress.style.width = e.offsetX + 'px'
+      this.$refs.progressbtn.style['transform'] = `translate3d(${e.offsetX}px,0,0)`
+      let width = this.$refs.progresswrapper.clientWidth - this.$refs.progressbtn.clientWidth - 4
+      let percent = e.offsetX / width
+      this.$refs.audio.currentTime = percent * (this.currentSong.dt / 1000)
+    },
+    // 点击开始滑动
+    touchstart (e) {
+      // 允许滑动,这样为了防止监听percent会出现跳点
+      this.touch.enable = true
+      // 获取点击的起点(为了测量偏移的距离)
+      this.touch.start = e.touches[0].pageX
+      // 获取初始的位置
+      this.touch.first = this.$refs.progress.clientWidth
+    },
+    // 允许滑动
+    touchmove (e) {
+      if (!this.touch.enable) {
+        return
+      }
+      // 算出来偏移量 可能是正值也可能是负值
+      let result = e.touches[0].pageX - this.touch.start
+      // 获取最大的距离
+      let width = this.$refs.progresswrapper.clientWidth - this.$refs.progressbtn.clientWidth - 4
+      // 最后的位置 this.touch.first + result获取到最终的位置
+      const offsetWidth = Math.min(width, Math.max(0, (this.touch.first + result)))
+      this.$refs.progress.style.width = offsetWidth + 'px'
+      this.$refs.progressbtn.style['transform'] = `translate3d(${offsetWidth}px,0,0)`
+    },
+    // 结束滑动
+    touchend () {
+      this.touch.enable = false
+      // 获取最大的距离
+      let width = this.$refs.progresswrapper.clientWidth - this.$refs.progressbtn.clientWidth - 4
+      let progresswidth = this.$refs.progress.clientWidth // 获取到进度条的宽度
+      let percent = progresswidth / width
+      this.$refs.audio.currentTime = percent * (this.currentSong.dt / 1000)
+    },
+    ...mapMutations(['setfullScreen', 'setplaying', 'setcurrentIndex']),
+    // 更新播放时间的方法
+    updatetime (e) {
+      this.currentTime = e.target.currentTime
+    },
+    // 把时间变成时间戳
+    setTime (time) {
+      time = Math.floor(time)
+      const minute = Math.floor(time / 60)
+      const second = (time % 60) > 9 ? (time % 60) : '0' + (time % 60)
+      return `${minute}:${second}`
+    },
+    error () {
+      // 未加载完或者出现网络错误
+      this.audioflag = true
+    },
+    ready () {
+      this.audioflag = true
+    },
+    prev () {
+      if (!this.audioflag) {
+        return
+      }
+      let index = this.currentIndex - 1
+      if (index === -1) {
+        index = this.playlist.length - 1
+      }
+      this.setcurrentIndex(index)
+      // 为了点击上一首或许下一首歌曲的时候切换状态
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      // 改变没准备状态。因为可能没准备好
+      this.audioflag = false
+    },
+    next () {
+      if (!this.audioflag) {
+        return
+      }
+      let index = this.currentIndex + 1
+      if (index === this.playlist.length) {
+        index = 0
+      }
+      this.setcurrentIndex(index)
+      // 为了点击上一首或许下一首歌曲的时候切换状态
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      // 改变没准备状态。因为可能没准备好
+      this.audioflag = false
+    },
     togglePlaying () {
+      if (!this.audioflag) {
+        return
+      }
       this.setplaying(!this.playing)
     },
     back () {
@@ -180,7 +334,9 @@ export default {
           delay: 300
         }
       })
-      animations.runAnimation(this.$refs.imgwrapper, 'move', done)
+      this.$nextTick(() => {
+        animations.runAnimation(this.$refs.imgwrapper, 'move', done)
+      })
     },
     afterenter (el) {
       animations.unregisterAnimation('move')
@@ -207,7 +363,9 @@ export default {
           easing: 'linear'
         }
       })
-      animations.runAnimation(this.$refs.imgwrapper, 'leave', done)
+      this.$nextTick(() => {
+        animations.runAnimation(this.$refs.imgwrapper, 'leave', done)
+      })
     },
     afterleave (el) {
       animations.unregisterAnimation('leave')
@@ -367,6 +525,57 @@ export default {
       position: absolute;
       bottom: 50px;
       width: 100%;
+      color: white;
+      .progress-wrapper {
+        display: flex;
+        align-items: center;
+        width: 80%;
+        margin: 0 auto;
+        padding: 10px 0;
+        .time-l {
+          text-align: left;
+        }
+        .time {
+          color: #fff;
+          font-size: 12px;
+          flex: 0 0 30px;
+          line-height: 30px;
+          width: 30px;
+        }
+        .progress-bar-wrapper {
+          flex: 1;
+          .progress-bar {
+            height: 30px;
+            .bar-inner {
+              position: relative;
+              top: 13px;
+              height: 4px;
+              background: rgba(0, 0, 0, 0.3);
+              .progress {
+                position: absolute;
+                height: 100%;
+                background: @color;
+              }
+              .progress-btn-wrapper {
+                position: absolute;
+                left: -4px;
+                top: -6px;
+                width: 16px;
+                height: 16px;
+                .progress-btn {
+                  position: relative;
+                  box-sizing: border-box;
+                  width: 16px;
+                  height: 16px;
+                  border: 3px solid #fff;
+                  border-radius: 50%;
+                  background: @color;
+                }
+              }
+            }
+          }
+        }
+      }
       .operators {
         display: flex;
         .icon {
@@ -375,6 +584,9 @@ export default {
         }
         .i-left {
           text-align: right;
+          &.fault {
+            color: @fontcolor2;
+          }
         }
         .i-center {
           padding: 0 20px;
@@ -382,6 +594,9 @@ export default {
         }
         .i-right {
           text-align: left;
+          &.fault {
+            color: @fontcolor2;
+          }
         }
         .iconstyles2 {
           font-size: 32px;
