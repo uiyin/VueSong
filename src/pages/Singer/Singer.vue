@@ -59,11 +59,9 @@ export default {
   created () {
     let _this = this
     let letterall = _this.letter
-    setTimeout(() => {
-      for (let i = 0; i < letterall.length; i++) {
-        _this.getSinger(letterall[i])
-      }
-    }, 1000)
+    for (let i = 0; i < letterall.length; i++) {
+      _this.getSinger(letterall[i])
+    }
   },
   mounted () {
     let _this = this
@@ -72,7 +70,7 @@ export default {
         _this.getHeight()
         _this._initBetterscroll()
       })
-    }, 2000)
+    }, 3000)
   },
   methods: {
     // 创建Betterscroll开始
@@ -171,11 +169,9 @@ export default {
       let _this = this
       _this.allsinger = []
       let letterall = _this.letter
-      setTimeout(() => {
-        for (let i = 0; i < letterall.length; i++) {
-          _this.getSinger(letterall[i])
-        }
-      }, 1000)
+      for (let i = 0; i < letterall.length; i++) {
+        _this.getSinger(letterall[i])
+      }
     },
     scrollY (newvalue, oldvalue) {
       let scrolljuli = newvalue + 2 // 差了2PX
@@ -184,7 +180,7 @@ export default {
       for (let i = 0; i < height.length; i++) {
         let height1 = height[i]
         let height2 = height[i + 1]
-        if (scrolljuli < height2 && scrolljuli >= height1) {
+        if (scrolljuli <= height2 && scrolljuli >= height1) {
           if (this.oldLetter !== Letter[i]) {
             this.letteractive = Letter[i]
             console.log(this.letteractive)
@@ -197,7 +193,7 @@ export default {
             this.oldLetter = Letter[0]
             console.log(this.letteractive)
           }
-        } else if (scrolljuli >= height[height.length - 1]) {
+        } else if (scrolljuli > height[height.length - 1]) {
           console.log(newvalue)
           if (this.oldLetter !== Letter[height.length - 1]) {
             this.letteractive = Letter[height.length - 1]
