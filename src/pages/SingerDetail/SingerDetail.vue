@@ -8,7 +8,7 @@
     </div>
     <div class="bgimg"
          ref="bgimg">
-      <img :src="singer.picUrl"
+      <img :src="singer.img1v1Url"
            alt=""
            class="imgcontent"
            ref="imgcontent">
@@ -49,21 +49,6 @@ export default {
       scrollY: 0
     }
   },
-  created () {
-    setTimeout(() => {
-      this.$nextTick(() => {
-        let height2 = this.$refs.imgcontent.clientHeight
-        console.log(height2)
-        this.singerflag = true
-        this.$refs.bgimg.style.height = height2 + 'px'
-        this.$refs.listwrapper.style.top = height2 + 'px'
-        this.heightresult = height2
-        // 遮罩部分
-        this.$refs.zhezhao.style.height = (height2 - 44) + 'px'
-        this.$refs.zhezhao.style.top = height2 + 'px'
-      })
-    }, 800)
-  },
   watch: {
     heightresult () {
       this.$nextTick(() => {
@@ -97,6 +82,16 @@ export default {
   },
   mounted () {
     this.getSinger()
+    setTimeout(() => {
+      this.$nextTick(() => {
+        this.singerflag = true
+        this.$refs.listwrapper.style.top = 375 + 'px'
+        this.heightresult = 375
+        // 遮罩部分
+        this.$refs.zhezhao.style.height = (375 - 44) + 'px'
+        this.$refs.zhezhao.style.top = 375 + 'px'
+      })
+    }, 500)
   },
   computed: {
     ...mapState({
@@ -144,6 +139,7 @@ export default {
         if (res.code === 200) {
           _this.singer = res.artist
           _this.hotsong = res.hotSongs
+          console.log(_this.singer)
         }
       })
     }
@@ -176,6 +172,7 @@ export default {
     position: absolute;
     top: 0px;
     left: 0px;
+    height: 7.5rem;
     z-index: 0;
     overflow: hidden;
   }
