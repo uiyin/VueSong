@@ -48,7 +48,7 @@
                        ref="progress"></div>
                   <div class="progress-btn-wrapper"
                        ref="progressbtn"
-                       @touchstart.prevent="touchstart"
+                       @touchstart="touchstart"
                        @touchmove.prevent="touchmove"
                        @touchend="touchend">
                     <div class="progress-btn"></div>
@@ -59,7 +59,8 @@
             <span class="time time-r">{{setTime(currentSong.dt/1000)}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left"><i class="iconfont icon-xunhuanbofang iconstyles2"></i></div>
+            <div class="icon i-left"><i @click="changeicon"
+                 :class="modeicon"></i></div>
             <div class="icon i-left"
                  :class="disabledClass"><i @click="prev"
                  class="iconfont icon-shangyishou iconstyles2"></i></div>
@@ -123,7 +124,8 @@
            :src="songurl"
            @canplay="ready"
            @error="error"
-           @timeupdate="updatetime"></audio>
+           @timeupdate="updatetime"
+           @ended="endAll"></audio>
   </div>
 </template>
 
@@ -139,19 +141,24 @@ export default {
       // 正在播放的时间
       currentTime: 0,
       // 存储小滑块滑动的信息
-      touch: {}
+      touch: {},
+      // icon改变图标
+      modeicon: 'iconfont icon-xunhuanbofang iconstyles2'
     }
   },
   created () {
+
   },
   components: {
 
   },
   watch: {
-    currentSong () {
-      this.$nextTick(() => {
-        this.$refs.audio.play()
-      })
+    currentSong (newvalue, oldvalue) {
+      if (newvalue.id !== oldvalue.id) {
+        this.$nextTick(() => {
+          this.$refs.audio.play()
+        })
+      }
     },
     // 监听playing状态要是真就是播放要是假就是暂停
     playing (newvalue) {
@@ -162,9 +169,9 @@ export default {
     },
     // 监听percent变化
     percent (newvalue, oldvalue) {
-      if (newvalue >= 0 && this.touch.enable) {
+      if (newvalue >= 0 && !this.touch.enable) {
         this.$nextTick(() => {
-          let width = this.$refs.progresswrapper.clientWidth * newvalue
+          let width = (this.$refs.progresswrapper.clientWidth - this.$refs.progressbtn.clientWidth - 4) * newvalue
           this.$refs.progress.style.width = width + 'px'
           this.$refs.progressbtn.style['transform'] = `translate3d(${width}px,0,0)`
         })
@@ -174,13 +181,18 @@ export default {
   computed: {
     // 小圈运行百分比
     circlepercent () {
-      return this.percent * 100
+      let value = Math.floor(this.percent)
+      if (value === 1) {
+        return 1
+      } else {
+        return this.percent * 100
+      }
     },
     // 滑动轴百分比
     percent () {
       return this.currentTime / (this.currentSong.dt / 1000)
     },
-    ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex']),
+    ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex', 'mode', 'sequenceList']),
     disabledClass () {
       return this.audioflag ? '' : 'fault'
     },
@@ -188,7 +200,7 @@ export default {
       return this.playing ? 'play' : 'play pause'
     },
     playIcon () {
-      return this.playing ? 'iconfont icon-bofang iconstyles2' : 'iconfont icon-zanting iconstyles2'
+      return this.playing ? 'iconfont icon-zanting iconstyles2' : 'iconfont icon-bofang iconstyles2'
     },
 
     songurl () {
@@ -198,6 +210,49 @@ export default {
     }
   },
   methods: {
+
+    // 打乱数组开始
+    arrrandom (arr) {
+      // 这样就不会修改原数组也就是顺序播放的顺序
+      let _arr = arr.slice()
+      for (let i = 0; i < _arr.length; i++) {
+        let j = this.getRandom(0, i)
+        let t = _arr[i]
+        _arr[i] = _arr[j]
+        _arr[j] = t
+      }
+      return _arr
+    },
+    getRandom (min, max) {
+      // 因为Math.random是0到1所以他取不到1 max-min+1是为了取得最大值MAX
+      return Math.floor(Math.random() * (max - min + 1) + min)
+    },
+    // 重新更新currentIndex
+    resetCurrentIndex (list) {
+      let index = list.findIndex((item) => {
+        return item.id === this.currentSong.id
+      })
+      this.setcurrentIndex(index)
+    },
+    // 改变状态开始
+    changeicon () {
+      // 获取下一次状态
+      let value = (this.mode + 1) % 3
+      console.log(value)
+      if (value === 0) {
+        this.modeicon = 'iconfont icon-xunhuanbofang iconstyles2'
+      } else if (value === 1) {
+        this.modeicon = 'iconfont icon-danquxunhuan iconstyles2'
+      } else if (value === 2) {
+        this.modeicon = 'iconfont icon-suiji iconstyles2'
+        let list = null
+        list = this.arrrandom(this.sequenceList)
+        this.resetCurrentIndex(list) // 改变currentIndex
+        this.setplaylist(list)
+        // currentsong不希望改变
+      }
+      this.setmode(value)
+    },
     // 点击开始到固定的位置
     clicksong (e) {
       this.$refs.progress.style.width = e.offsetX + 'px'
@@ -238,7 +293,7 @@ export default {
       let percent = progresswidth / width
       this.$refs.audio.currentTime = percent * (this.currentSong.dt / 1000)
     },
-    ...mapMutations(['setfullScreen', 'setplaying', 'setcurrentIndex']),
+    ...mapMutations(['setfullScreen', 'setplaying', 'setcurrentIndex', 'setmode', 'setplaylist']),
     // 更新播放时间的方法
     updatetime (e) {
       this.currentTime = e.target.currentTime
@@ -249,6 +304,21 @@ export default {
       const minute = Math.floor(time / 60)
       const second = (time % 60) > 9 ? (time % 60) : '0' + (time % 60)
       return `${minute}:${second}`
+    },
+    // 结束的时候
+    endAll () {
+      let value = this.mode // 获取到播放状态
+      // 单曲循环
+      // 随机播放或者顺寻播放就是下一首播放
+      if (value === 1) {
+        console.log('单曲循环')
+        this.$refs.audio.currentTime = 0
+        console.log(this.percent)
+        this.$refs.audio.play()
+      } else {
+        console.log(value + '||' + '下一首')
+        this.next()
+      }
     },
     error () {
       // 未加载完或者出现网络错误
@@ -303,8 +373,6 @@ export default {
     open () {
       this.$refs.player.style['height'] = window.innerHeight + 'px'
       this.setfullScreen(true)
-
-      // this.setfullScreen(true)
     },
     /*
      钩子函数
