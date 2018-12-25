@@ -23,7 +23,6 @@ export const selectPlay = function ({
       console.log(state.sequenceList)
       return item.id === state.sequenceList[index].id
     })
-    console.log('最后的' + index)
   } else {
     commit('setsequenceList', list)
     commit('setplaylist', list)
