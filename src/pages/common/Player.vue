@@ -22,7 +22,7 @@
         <!--头部结束-->
         <!--中间开始-->
         <div class="middle">
-          <div class="middle-l">
+          <!-- <div class="middle-l">
             <div class="cd-wrapper"
                  ref="imgwrapper">
               <div class="cd"
@@ -30,6 +30,21 @@
                 <img :src="currentSong.al.picUrl"
                      class="image"
                      alt="">
+              </div>
+            </div>
+          </div> -->
+          <div class="middle-r"
+               ref="lyricList">
+            <div class="lyric-wrapper"
+                 ref="lyricwrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                   class="text"
+                   :class="{'current':currentLineNum===index}"
+                   v-for="(item,index) in currentLyric.lines"
+                   :key="index">
+                  {{item.txt}}
+                </p>
               </div>
             </div>
           </div>
@@ -130,8 +145,12 @@
 </template>
 
 <script>
+import getData from '@/axios/api.js'
+import url from '@/axios/url.js'
 import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
+import Lyric from 'lyric-parser'
+import BScroll from 'better-scroll'
 export default {
   data () {
     return {
@@ -143,11 +162,14 @@ export default {
       // 存储小滑块滑动的信息
       touch: {},
       // icon改变图标
-      modeicon: 'iconfont icon-xunhuanbofang iconstyles2'
+      modeicon: 'iconfont icon-xunhuanbofang iconstyles2',
+      // 歌词
+      songtext: '',
+      // 当前歌词
+      currentLyric: '',
+      // 当前歌词所在的行
+      currentLineNum: 0
     }
-  },
-  created () {
-
   },
   components: {
 
@@ -156,7 +178,8 @@ export default {
     currentSong (newvalue, oldvalue) {
       if (newvalue.id !== oldvalue.id) {
         this.$nextTick(() => {
-          this.$refs.audio.play()
+          this.$refs.audio.play() // 播放开始
+          this.getsrc() // 获取到歌词
         })
       }
     },
@@ -210,7 +233,51 @@ export default {
     }
   },
   methods: {
-
+    // 注册scroll组件
+    initbscrollgeci () {
+      let wrap = this.$refs.lyricList
+      this.bscroll = new BScroll(wrap, {
+        probeType: 3, // 实时知道位置
+        scrollY: true, // 纵向是否滑屏false 就不能滑屏了
+        click: true
+      })
+    },
+    // 获取歌词
+    getsrc () {
+      let _this = this
+      let id = this.currentSong.id
+      console.log(id)
+      let obj = {
+        url: url.songtext,
+        method: 'get',
+        data: {
+          id
+        }
+      }
+      getData(obj).then((res) => {
+        _this.songtext = res.lrc.lyric
+        _this.changesongtext(_this.songtext)
+      })
+    },
+    // 改变歌词
+    changesongtext (str) {
+      this.currentLyric = new Lyric(str, this.handleLyric)
+      this.initbscrollgeci() // 注册歌词滚动
+      console.log(this.playing)
+      if (this.playing) {
+        this.currentLyric.play()
+      }
+    },
+    // 歌词回调改变
+    handleLyric ({ lineNum, txt }) {
+      this.currentLineNum = lineNum
+      if (lineNum >= 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 5]
+        this.bscroll.scrollToElement(lineEl, 1000)
+      } else {
+        this.bscroll.scrollTo(0, 0, 1000)
+      }
+    },
     // 打乱数组开始
     arrrandom (arr) {
       // 这样就不会修改原数组也就是顺序播放的顺序
@@ -316,7 +383,6 @@ export default {
         console.log(this.percent)
         this.$refs.audio.play()
       } else {
-        console.log(value + '||' + '下一首')
         this.next()
       }
     },
@@ -364,6 +430,7 @@ export default {
         return
       }
       this.setplaying(!this.playing)
+      console.log('点击了暂停' + this.playing)
     },
     back () {
       this.$refs.player.style['height'] = '60px'
@@ -584,6 +651,27 @@ export default {
               width: 100%;
               height: 100%;
               border-radius: 50%;
+            }
+          }
+        }
+      }
+      .middle-r {
+        display: inline-block;
+        vertical-align: top;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        .lyric-wrapper {
+          width: 80%;
+          margin: 0 auto;
+          overflow: hidden;
+          text-align: center;
+          .text {
+            line-height: 32px;
+            color: @fontcolor2;
+            font-size: 14px;
+            &.current {
+              color: #fff;
             }
           }
         }
