@@ -7,6 +7,7 @@ import Singer from '@/pages/Singer/Singer'
 import Paihang from '@/pages/Paihang/Paihang'
 import SingerDetail from '@/pages/SingerDetail/SingerDetail'
 import SongList from '@/pages/SongList/SongList'
+import PaiHangDetail from '@/pages/PaiHangDetail/PaiHangDetail'
 Vue.use(Router)
 /* eslint-disable */
 export default new Router({
@@ -48,6 +49,11 @@ export default new Router({
       name: 'songlist',
       component: SongList
     },
+    {
+      path: '/paihangdetail',
+      name: 'PaiHangDetail',
+      component: PaiHangDetail
+    }
 
   ],
   // 自定义路由切换时页面如何滚动
