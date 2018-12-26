@@ -22,34 +22,57 @@
         <!--头部结束-->
         <!--中间开始-->
         <div class="middle">
-          <!-- <div class="middle-l">
-            <div class="cd-wrapper"
-                 ref="imgwrapper">
-              <div class="cd"
-                   :class="activaclass">
-                <img :src="currentSong.al.picUrl"
-                     class="image"
-                     alt="">
+          <swiper :options="swiperOption"
+                  ref="mySwiper"
+                  class="lyricwrapperall">
+            <!--第一个滑动开始-->
+            <swiper-slide>
+              <div class="middle-l">
+                <div class="cd-wrapper"
+                     ref="imgwrapper">
+                  <div class="cd"
+                       :class="activaclass">
+                    <img :src="currentSong.al.picUrl"
+                         class="image"
+                         alt="">
+                  </div>
+                </div>
               </div>
-            </div>
-          </div> -->
-          <div class="middle-r"
-               ref="lyricList">
-            <div class="lyric-wrapper"
-                 ref="lyricwrapper">
-              <div v-if="currentLyric">
-                <p ref="lyricLine"
-                   class="text"
-                   :class="{'current':currentLineNum===index}"
-                   v-for="(item,index) in currentLyric.lines"
-                   :key="index">
-                  {{item.txt}}
-                </p>
+              <!--歌词部分开始-->
+              <div class="playing-lyric-wrapper">
+                <div class="playing-lyric">{{playingLyric}}</div>
               </div>
-            </div>
-          </div>
+              <!--歌词部分结束-->
+            </swiper-slide>
+            <!--第一个滑动结束-->
+            <!--第二个滑动开始-->
+            <swiper-slide>
+              <div class="middle-r"
+                   ref="lyricList">
+                <div class="lyric-wrapper"
+                     ref="lyricwrapper">
+                  <div v-if="currentLyric">
+                    <p ref="lyricLine"
+                       class="text"
+                       :class="{'current':currentLineNum===index}"
+                       v-for="(item,index) in currentLyric.lines"
+                       :key="index">
+                      {{item.txt}}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </swiper-slide>
+            <!--第二个滑动结束-->
+          </swiper>
         </div>
         <!--中间结束-->
+        <!--底部导航开始-->
+        <!--底部导航开始-->
+        <div class="swiper-pagination"
+             slot="pagination"></div>
+        <!--底部导航结束-->
+        <!--底部导航结束-->
         <!--尾巴开始-->
         <div class="bottom">
           <div class="progress-wrapper">
@@ -145,6 +168,8 @@
 </template>
 
 <script>
+import 'swiper/dist/css/swiper.css'
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
 import getData from '@/axios/api.js'
 import url from '@/axios/url.js'
 import { mapGetters, mapMutations } from 'vuex'
@@ -154,6 +179,7 @@ import BScroll from 'better-scroll'
 export default {
   data () {
     return {
+      playingLyric: '',
       message: '播放器',
       flag: false,
       audioflag: false,
@@ -168,19 +194,43 @@ export default {
       // 当前歌词
       currentLyric: '',
       // 当前歌词所在的行
-      currentLineNum: 0
+      currentLineNum: 0,
+      // 左右滑动调用swiper
+      swiperOption: {
+        effect: 'slide',
+        speed: 300,
+        // 循环的时候必须要加上下面3个属性要不然loop不生效,还得在最外层加上v-if判断个数
+        loop: true,
+        observer: true, // 修改swiper自己或子元素时，自动初始化swiper
+        observeParents: true, // 修改swiper的父元素时，自动初始化swiper
+        // 循环结束
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true,
+          renderBullet: function (index, className) {
+            return '<span class="' + className + '"></span>'
+          }
+        }
+      }
     }
   },
   components: {
-
+    swiper,
+    swiperSlide
   },
   watch: {
     currentSong (newvalue, oldvalue) {
       if (newvalue.id !== oldvalue.id) {
-        this.$nextTick(() => {
+        // 为了防止来回切换的时候歌词对象不消失所以需要先清除
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
+        // 手机切换前台歌曲播放
+        setTimeout(() => {
           this.$refs.audio.play() // 播放开始
           this.getsrc() // 获取到歌词
-        })
+          this.playingLyric = '' // 清空当前歌词
+        }, 1000)
       }
     },
     // 监听playing状态要是真就是播放要是假就是暂停
@@ -202,6 +252,10 @@ export default {
     }
   },
   computed: {
+    // 返回swiper
+    swiper () {
+      return this.$refs.mySwiper.swiper
+    },
     // 小圈运行百分比
     circlepercent () {
       let value = Math.floor(this.percent)
@@ -277,6 +331,7 @@ export default {
       } else {
         this.bscroll.scrollTo(0, 0, 1000)
       }
+      this.playingLyric = txt
     },
     // 打乱数组开始
     arrrandom (arr) {
@@ -327,6 +382,10 @@ export default {
       let width = this.$refs.progresswrapper.clientWidth - this.$refs.progressbtn.clientWidth - 4
       let percent = e.offsetX / width
       this.$refs.audio.currentTime = percent * (this.currentSong.dt / 1000)
+      let value2 = percent * (this.currentSong.dt / 1000)
+      if (this.currentLyric) {
+        this.currentLyric.seek(value2 * 1000)
+      }
     },
     // 点击开始滑动
     touchstart (e) {
@@ -359,6 +418,11 @@ export default {
       let progresswidth = this.$refs.progress.clientWidth // 获取到进度条的宽度
       let percent = progresswidth / width
       this.$refs.audio.currentTime = percent * (this.currentSong.dt / 1000)
+      let value2 = percent * (this.currentSong.dt / 1000)
+      // 更新歌词
+      if (this.currentLyric) {
+        this.currentLyric.seek(value2 * 1000)
+      }
     },
     ...mapMutations(['setfullScreen', 'setplaying', 'setcurrentIndex', 'setmode', 'setplaylist']),
     // 更新播放时间的方法
@@ -382,6 +446,9 @@ export default {
         this.$refs.audio.currentTime = 0
         console.log(this.percent)
         this.$refs.audio.play()
+        if (this.currentLyric) {
+          this.currentLyric.seek(0) // 这样播放完以后让歌词又偏移到起点
+        }
       } else {
         this.next()
       }
@@ -397,15 +464,25 @@ export default {
       if (!this.audioflag) {
         return
       }
-      let index = this.currentIndex - 1
-      if (index === -1) {
-        index = this.playlist.length - 1
+      if (this.playlist.length === 1) {
+        //  一首歌就是单曲循环
+        this.$refs.audio.currentTime = 0
+        this.$refs.audio.play()
+        if (this.currentLyric) {
+          this.currentLyric.seek(0) // 这样播放完以后让歌词又偏移到起点
+        }
+      } else {
+        let index = this.currentIndex - 1
+        if (index === -1) {
+          index = this.playlist.length - 1
+        }
+        this.setcurrentIndex(index)
+        // 为了点击上一首或许下一首歌曲的时候切换状态
+        if (!this.playing) {
+          this.togglePlaying()
+        }
       }
-      this.setcurrentIndex(index)
-      // 为了点击上一首或许下一首歌曲的时候切换状态
-      if (!this.playing) {
-        this.togglePlaying()
-      }
+
       // 改变没准备状态。因为可能没准备好
       this.audioflag = false
     },
@@ -413,15 +490,25 @@ export default {
       if (!this.audioflag) {
         return
       }
-      let index = this.currentIndex + 1
-      if (index === this.playlist.length) {
-        index = 0
+      if (this.playlist.length === 1) {
+        //  一首歌就是单曲循环
+        this.$refs.audio.currentTime = 0
+        this.$refs.audio.play()
+        if (this.currentLyric) {
+          this.currentLyric.seek(0) // 这样播放完以后让歌词又偏移到起点
+        }
+      } else {
+        let index = this.currentIndex + 1
+        if (index === this.playlist.length) {
+          index = 0
+        }
+        this.setcurrentIndex(index)
+        // 为了点击上一首或许下一首歌曲的时候切换状态
+        if (!this.playing) {
+          this.togglePlaying()
+        }
       }
-      this.setcurrentIndex(index)
-      // 为了点击上一首或许下一首歌曲的时候切换状态
-      if (!this.playing) {
-        this.togglePlaying()
-      }
+
       // 改变没准备状态。因为可能没准备好
       this.audioflag = false
     },
@@ -430,7 +517,9 @@ export default {
         return
       }
       this.setplaying(!this.playing)
-      console.log('点击了暂停' + this.playing)
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay() // 切换状态
+      }
     },
     back () {
       this.$refs.player.style['height'] = '60px'
@@ -617,64 +706,97 @@ export default {
       top: 80px;
       bottom: 170px;
       white-space: nowrap;
-      font-size: 0;
-      .middle-l {
-        display: inline-block;
-        vertical-align: top;
-        position: relative;
+      overflow: hidden;
+      .lyricwrapperall {
+        position: absolute;
+        left: 0px;
+        top: 0px;
         width: 100%;
-        height: 0;
-        padding-top: 80%;
-        .cd-wrapper {
-          position: absolute;
-          left: 10%;
-          top: 0;
-          width: 80%;
-          box-sizing: border-box;
-          height: 100%;
-          .cd {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
+        height: 100%;
+        .middle-l {
+          display: inline-block;
+          vertical-align: top;
+          position: relative;
+          width: 100%;
+          height: 0;
+          padding-top: 80%;
+          .cd-wrapper {
+            position: absolute;
+            left: 10%;
+            top: 0;
+            width: 80%;
             box-sizing: border-box;
-            border: 10px solid rgba(255, 255, 255, 0.1);
-            &.play {
-              animation: rotate 20s linear infinite;
-            }
-            &.pause {
-              animation-play-state: paused;
-            }
-            .image {
-              position: absolute;
-              left: 0;
-              top: 0;
+            height: 100%;
+            .cd {
               width: 100%;
               height: 100%;
               border-radius: 50%;
+              box-sizing: border-box;
+              border: 10px solid rgba(255, 255, 255, 0.1);
+              &.play {
+                animation: rotate 20s linear infinite;
+              }
+              &.pause {
+                animation-play-state: paused;
+              }
+              .image {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+              }
+            }
+          }
+        }
+        .playing-lyric-wrapper {
+          margin-top: 0.5rem;
+          color: @fontcolor2;
+          text-align: center;
+        }
+        .middle-r {
+          display: inline-block;
+          vertical-align: top;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          .lyric-wrapper {
+            width: 80%;
+            margin: 0 auto;
+            overflow: hidden;
+            text-align: center;
+            .text {
+              line-height: 32px;
+              color: @fontcolor2;
+              font-size: 14px;
+              &.current {
+                color: #fff;
+              }
             }
           }
         }
       }
-      .middle-r {
-        display: inline-block;
-        vertical-align: top;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        .lyric-wrapper {
-          width: 80%;
-          margin: 0 auto;
-          overflow: hidden;
-          text-align: center;
-          .text {
-            line-height: 32px;
-            color: @fontcolor2;
-            font-size: 14px;
-            &.current {
-              color: #fff;
-            }
-          }
-        }
+    }
+    /deep/.swiper-pagination {
+      position: fixed;
+      width: 100%;
+      height: 30px;
+      bottom: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      span {
+        width: 10px;
+        height: 10px;
+        background: @fontcolor2;
+        opacity: 1;
+        margin-right: 10px;
+      }
+      .swiper-pagination-bullet-active {
+        background: white;
+        width: 20px;
+        border-radius: 5px;
+        transition: width 0.5s;
       }
     }
     .bottom {
