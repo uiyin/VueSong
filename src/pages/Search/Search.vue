@@ -79,20 +79,12 @@ export default {
     ...mapActions(['selectPlay']),
     // 跳转
     gotourl (id, index) {
-      console.log(id)
-      console.log(index)
-      console.log(this.searchresult)
       let value = this.searchresult
       this.selectPlay({
         list: value,
         index
       })
-      console.log(this.playlist)
-      console.log('当前序号' + this.currentIndex)
-      console.log(this.currentSong)
-      console.log(this.currentSong.artists[0].img1v1Url)
-      console.log(this.currentSong.artists[0].name)
-      console.log(this.currentSong.duration)
+
       this.setfullScreen(true)
     },
     // 搜索框按下回车键
@@ -152,7 +144,7 @@ export default {
       this.$nextTick(() => {
         let firstHeight = 44 * 2 + 40 + 44 * 2
         let hotHeight = this.$refs.hotsearch.clientHeight
-        let top = firstHeight + hotHeight
+        let top = firstHeight + hotHeight + 20
         this.$refs.betterscrollall.style.top = top + 'px'
         this.$refs.betterscrollall.style.bottom = 0 + 'px'
         this._initBetterscroll() // 注册beterscroll
