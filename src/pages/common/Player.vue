@@ -16,8 +16,9 @@
                @click="back"><i class="iconfont icon-xiala iconstyles"></i></div>
           <h1 class="title"
               v-html="currentSong.name"></h1>
-          <h2 class="subtitle"
-              v-html="currentSong.ar[0].name"></h2>
+          <h2 class="subtitle">
+            {{bgtext}}
+          </h2>
         </div>
         <!--头部结束-->
         <!--中间开始-->
@@ -32,7 +33,7 @@
                      ref="imgwrapper">
                   <div class="cd"
                        :class="activaclass">
-                    <img :src="currentSong.al.picUrl"
+                    <img :src="bgpic"
                          class="image"
                          alt="">
                   </div>
@@ -94,7 +95,7 @@
                 </div>
               </div>
             </div>
-            <span class="time time-r">{{setTime(currentSong.dt/1000)}}</span>
+            <span class="time time-r">{{setTime((currentSong.dt/1000)||(currentSong.duration/1000))}}</span>
           </div>
           <div class="operators">
             <div class="icon i-left"><i @click="changeicon"
@@ -113,7 +114,7 @@
         <!--尾巴结束-->
         <!--背景图层开始-->
         <div class="background">
-          <img :src="currentSong.al.picUrl"
+          <img :src="bgpic"
                alt=""
                width="100%"
                height="100%">
@@ -131,13 +132,14 @@
                :class="activaclass">
             <img width="40"
                  height="40"
-                 :src="currentSong.al.picUrl"></div>
+                 :src="bgpic"></div>
         </div>
         <div class="text">
           <h2 class="name"
               v-html="currentSong.name"></h2>
-          <p class="desc"
-             v-html="currentSong.ar[0].name"></p>
+          <p class="desc">
+            {{bgtext}}
+          </p>
         </div>
         <div class="control">
           <div class="progress-circle">
@@ -153,9 +155,9 @@
             </vm-progress>
           </div>
         </div>
-        <div class="control">
+        <!-- <div class="control">
           <div class="progress-circle"><i class="iconfont icon-bianji iconstyles2"></i></div>
-        </div>
+        </div> -->
       </div>
     </transition>
     <audio ref="audio"
@@ -252,6 +254,22 @@ export default {
     }
   },
   computed: {
+    // 第二标题
+    bgtext () {
+      if (this.currentSong.ar) {
+        return this.currentSong.ar[0].name
+      } else {
+        return this.currentSong.artists[0].name
+      }
+    },
+    // 背景图
+    bgpic () {
+      if (this.currentSong.al) {
+        return this.currentSong.al.picUrl
+      } else {
+        return this.currentSong.artists[0].img1v1Url
+      }
+    },
     // 返回swiper
     swiper () {
       return this.$refs.mySwiper.swiper
@@ -259,6 +277,7 @@ export default {
     // 小圈运行百分比
     circlepercent () {
       let value = Math.floor(this.percent)
+      console.log(value)
       if (value === 1) {
         return 1
       } else {
@@ -267,7 +286,7 @@ export default {
     },
     // 滑动轴百分比
     percent () {
-      return this.currentTime / (this.currentSong.dt / 1000)
+      return ((this.currentTime / (this.currentSong.dt / 1000)) || (this.currentTime / (this.currentSong.duration / 1000))) || 0
     },
     ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex', 'mode', 'sequenceList']),
     disabledClass () {
@@ -381,8 +400,8 @@ export default {
       this.$refs.progressbtn.style['transform'] = `translate3d(${e.offsetX}px,0,0)`
       let width = this.$refs.progresswrapper.clientWidth - this.$refs.progressbtn.clientWidth - 4
       let percent = e.offsetX / width
-      this.$refs.audio.currentTime = percent * (this.currentSong.dt / 1000)
-      let value2 = percent * (this.currentSong.dt / 1000)
+      this.$refs.audio.currentTime = (percent * (this.currentSong.dt / 1000)) || (percent * (this.currentSong.duration / 1000))
+      let value2 = (percent * (this.currentSong.dt / 1000)) || (percent * (this.currentSong.duration / 1000))
       if (this.currentLyric) {
         this.currentLyric.seek(value2 * 1000)
       }
@@ -417,8 +436,8 @@ export default {
       let width = this.$refs.progresswrapper.clientWidth - this.$refs.progressbtn.clientWidth - 4
       let progresswidth = this.$refs.progress.clientWidth // 获取到进度条的宽度
       let percent = progresswidth / width
-      this.$refs.audio.currentTime = percent * (this.currentSong.dt / 1000)
-      let value2 = percent * (this.currentSong.dt / 1000)
+      this.$refs.audio.currentTime = (percent * (this.currentSong.dt / 1000)) || (percent * (this.currentSong.duration / 1000))
+      let value2 = (percent * (this.currentSong.dt / 1000)) || (percent * (this.currentSong.duration / 1000))
       // 更新歌词
       if (this.currentLyric) {
         this.currentLyric.seek(value2 * 1000)
@@ -909,6 +928,7 @@ export default {
       .imgWrapper {
         height: 100%;
         width: 100%;
+        display: block;
         &.play {
           animation: rotate 20s linear infinite;
         }
@@ -916,7 +936,10 @@ export default {
           animation-play-state: paused;
         }
         img {
+          height: 100%;
+          width: 100%;
           border-radius: 50%;
+          display: block;
         }
       }
     }
