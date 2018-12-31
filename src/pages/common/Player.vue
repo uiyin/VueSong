@@ -151,7 +151,7 @@
                          stroke-color="#0190d4">
               <i :class="playIcon"
                  @click.stop="togglePlaying"
-                 style="top:-8px;left:4px;font-size:22px;"></i>
+                 style="top:-11px;left:4px;font-size:22px;"></i>
             </vm-progress>
           </div>
         </div>
