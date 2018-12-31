@@ -5,6 +5,8 @@ const url = {
   singerdetail: '/api/artists',
   songtext: '/api/lyric',
   gedanlist: '/api/playlist/detail',
-  paihanglist: '/api/top/list'
+  paihanglist: '/api/top/list',
+  hotsearch: '/api/search/hot',
+  search: '/api//search'
 }
 export default url

@@ -96,7 +96,8 @@ export default {
   },
   computed: {
     ...mapState({
-      singerId: 'singer'
+      singerId: 'singer',
+      playlist2: 'playlist'
     })
   },
   methods: {
@@ -121,6 +122,7 @@ export default {
         list: this.hotsong,
         index
       })
+      console.log(this.playlist2)
       this.setfullScreen(true)
     },
     goback () {
@@ -141,6 +143,7 @@ export default {
           _this.playlist = res.playlist
           _this.hotsong = res.playlist.tracks
           console.log(_this.playlist)
+          console.log(_this.hotsong)
         }
       })
     }
